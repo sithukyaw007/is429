@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html ng-app="">
+<head>
+<link rel="stylesheet" href = "http://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css">
+<script src= "http://ajax.googleapis.com/ajax/libs/angularjs/1.2.26/angular.min.js"></script>
+</head>
+
+<body ng-controller="userController">
+<div class="container">
+
+<h3>IS429 Class List</h3>
+
+<table class="table table-striped">
+  <thead>
+    <tr>
+      <th>S/N</th>
+      <th>First Name</th>
+      <th>Last Name</th>
+      <th>Email</th>
+      <th>Edit</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr ng-repeat="user in users">
+      <td>{{$index + 1}}</td>
+      <td>{{ user.fName }}</td>
+      <td>{{ user.lName }}</td>
+      <td>{{ user.lEmail }}</td>
+      <td>
+        <button class="btn btn-info" ng-click="editUser(user.id)">
+          <span class="glyphicon glyphicon-pencil"></span>  Edit
+        </button>
+      </td>
+      <td>
+        <button class="btn btn-warning" ng-click="deleteUser(user.id)">
+          <span class="glyphicon glyphicon-trash"></span>  Delete
+        </button>
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+<hr>
+<button class="btn btn-success" ng-click="editUser('new')">
+<span class="glyphicon glyphicon-plus"></span>  Create New Customer
+</button>
+<hr>
+
+
+<h3 ng-show="edit">Create New User:</h3>
+<h3 ng-hide="edit">Edit User:</h3>
+
+<form class="form-horizontal">
+  <div class="form-group">
+    <label class="col-sm-2 control-label">First Name:</label>
+    <div class="col-sm-10">
+    <input type="text" ng-model="fName" ng-disabled="!edit" placeholder="First Name">
+    </div>
+  </div> 
+  <div class="form-group">
+    <label class="col-sm-2 control-label">Last Name:</label>
+    <div class="col-sm-10">
+    <input type="text" ng-model="lName" ng-disabled="!edit" placeholder="Last Name">
+    </div>
+  </div>
+  <div class="form-group">
+    <label class="col-sm-2 control-label">Email:</label>
+    <div class="col-sm-10">
+    <input type="text" ng-model="lEmail" ng-disabled="!edit" placeholder="Email Address">
+    </div>
+  </div>
+  <div class="form-group">
+    <label class="col-sm-2 control-label">Password:</label>
+    <div class="col-sm-10">
+    <input type="password" ng-model="passw1" placeholder="Password">
+    </div>
+  </div>
+  <div class="form-group">
+    <label class="col-sm-2 control-label">Repeat:</label>
+    <div class="col-sm-10">
+    <input type="password" ng-model="passw2" placeholder="Repeat Password">
+    </div>
+  </div>
+</form>
+
+<hr>
+<button class="btn btn-success" ng-disabled="error || incomplete" ng-click="save()">
+<span class="glyphicon glyphicon-save"></span>  Save Changes
+</button>
+
+</div>
+
+<script>
+  function userController($scope) {
+    $scope.fName = '';
+    $scope.lName = '';
+    $scope.lEmail = '';
+    $scope.passw1 = '';
+    $scope.passw2 = '';
+    
+    //We can replace this with a Firebase url later on. 
+    $scope.users = [
+        {id:1, fName:'Hege'  , lName:"Pege" , lEmail: "hege@gmail.com"},
+        {id:2, fName:'Kim'   , lName:"Pim" , lEmail: "kim@gmail.com"},
+        {id:3, fName:'Jack'  , lName:"Jones" , lEmail: "jack@gmail.com"},
+        {id:4, fName:'John'  , lName:"Doe" , lEmail: "john@gmail.com"},
+        {id:5, fName:'Peter' , lName:"Pan" , lEmail: "peter@gmail.com"}
+    ];
+    
+    $scope.edit = true;
+    $scope.error = false;
+    $scope.incomplete = false;  
+    
+    
+    $scope.editUser = function(id) {
+        $scope.currentId = id;
+        if (id == 'new') {
+            $scope.edit = true;
+            $scope.incomplete = true;
+            $scope.fName = '';
+            $scope.lName = '';
+            $scope.lEmail = '';
+            console.log("new user.");
+        } else {
+            $scope.edit = true;
+            $scope.fName = $scope.users[id-1].fName;
+            $scope.lName = $scope.users[id-1].lName; 
+            $scope.lEmail = $scope.users[id-1].lEmail;
+            console.log("existing user.");
+        }
+    };
+    
+    $scope.$watch('passw1',function() {$scope.test();});
+    $scope.$watch('passw2',function() {$scope.test();});
+    $scope.$watch('fName', function() {$scope.test();});
+    $scope.$watch('lName', function() {$scope.test();});
+    $scope.$watch('lEmail', function() {$scope.test();});
+    $scope.test = function() {
+        if ($scope.passw1 !== $scope.passw2) {
+            $scope.error = true;
+        } else {
+            $scope.error = false;
+        }
+        $scope.incomplete = false;
+        if ($scope.edit && (!$scope.fName.length || !$scope.lName.length  || !$scope.lEmail.length || !$scope.passw1.length || !$scope.passw2.length)) {
+            $scope.incomplete = true;
+        }
+    };
+    $scope.save = function(){
+      //Add new if no index is passed in.
+      if($scope.currentId=='new'){
+        //Using the array length as the next index while prototyping. 
+        $scope.users.push({id:$scope.users.length+1, fName:$scope.fName  , lName:$scope.lName , lEmail: $scope.lEmail});
+      }
+      else{
+        $scope.users[$scope.currentId-1].fName = $scope.fName;
+        $scope.users[$scope.currentId-1].lName = $scope.lName;
+        $scope.users[$scope.currentId-1].lEmail = $scope.lEmail;
+      }
+    };
+    
+    $scope.deleteUser = function(index){
+      $scope.users.splice(index-1, 1);
+    }
+    
+    }
+  
+</script>
+</body>
+</html>
+
+
+
+
+
+
+
+
+
+
+
+
+
